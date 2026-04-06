@@ -40,10 +40,9 @@ const viewCountStatusEl = document.getElementById('viewCountStatus');
 const contactForm = document.getElementById('contactForm');
 const formStatus = document.getElementById('formStatus');
 const formSubmitButton = contactForm ? contactForm.querySelector('.form-submit') : null;
-const recipientEmail = 'pradhanarush73@gmail.com';
 
 if (contactForm && formStatus) {
-  contactForm.addEventListener('submit', (event) => {
+  contactForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     if (!contactForm.checkValidity()) {
@@ -66,23 +65,37 @@ if (contactForm && formStatus) {
     formStatus.classList.remove('is-success', 'is-error');
     if (formSubmitButton) {
       formSubmitButton.disabled = true;
-      formSubmitButton.textContent = 'OPENING...';
+      formSubmitButton.textContent = 'SENDING...';
     }
 
-    const subject = encodeURIComponent(`Portfolio message from ${name}`);
-    const body = encodeURIComponent(
-      `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
-    );
+    try {
+      const response = await fetch('/api/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, email, message })
+      });
 
-    window.location.href = `mailto:${recipientEmail}?subject=${subject}&body=${body}`;
+      const result = await response.json();
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error || 'Send failed.');
+      }
 
-    formStatus.textContent = 'Opening your email app to send this message.';
-    formStatus.classList.add('is-success');
-    formStatus.classList.remove('is-error');
-    contactForm.reset();
-    if (formSubmitButton) {
-      formSubmitButton.disabled = false;
-      formSubmitButton.textContent = 'SEND MESSAGE ▶';
+      formStatus.textContent = 'Message sent successfully.';
+      formStatus.classList.add('is-success');
+      formStatus.classList.remove('is-error');
+      contactForm.reset();
+    } catch (error) {
+      formStatus.textContent = 'Could not send message right now. Please try again in a moment.';
+      formStatus.classList.remove('is-success');
+      formStatus.classList.add('is-error');
+      console.warn('Contact form submission failed:', error);
+    } finally {
+      if (formSubmitButton) {
+        formSubmitButton.disabled = false;
+        formSubmitButton.textContent = 'SEND MESSAGE ▶';
+      }
     }
   });
 }
