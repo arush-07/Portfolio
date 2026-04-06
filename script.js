@@ -40,6 +40,7 @@ const viewCountStatusEl = document.getElementById('viewCountStatus');
 const contactForm = document.getElementById('contactForm');
 const formStatus = document.getElementById('formStatus');
 const formSubmitButton = contactForm ? contactForm.querySelector('.form-submit') : null;
+const recipientEmail = 'pradhanarush73@gmail.com';
 
 if (contactForm && formStatus) {
   contactForm.addEventListener('submit', async (event) => {
@@ -69,17 +70,26 @@ if (contactForm && formStatus) {
     }
 
     try {
-      const response = await fetch('/api/send', {
+      const response = await fetch(`https://formsubmit.co/ajax/${recipientEmail}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
         },
-        body: JSON.stringify({ name, email, message })
+        body: JSON.stringify({
+          name,
+          email,
+          message,
+          _subject: `Portfolio message from ${name}`,
+          _replyto: email,
+          _captcha: 'false',
+          _template: 'table'
+        })
       });
 
-      const result = await response.json();
-      if (!response.ok || !result.ok) {
-        throw new Error(result.error || 'Send failed.');
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || result.success === 'false') {
+        throw new Error(result.message || result.error || 'Send failed.');
       }
 
       formStatus.textContent = 'Message sent successfully.';
@@ -87,7 +97,8 @@ if (contactForm && formStatus) {
       formStatus.classList.remove('is-error');
       contactForm.reset();
     } catch (error) {
-      formStatus.textContent = 'Could not send message right now. Please try again in a moment.';
+      const fallbackMessage = 'Could not send message right now. Please try again in a moment.';
+      formStatus.textContent = error instanceof Error && error.message ? error.message : fallbackMessage;
       formStatus.classList.remove('is-success');
       formStatus.classList.add('is-error');
       console.warn('Contact form submission failed:', error);
