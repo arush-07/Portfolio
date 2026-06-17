@@ -1,17 +1,13 @@
-// ── MOBILE CURSOR GUARD ──
-// Only run custom cursor on pointer-fine devices (not touch screens)
 const isPointerFine = window.matchMedia('(pointer:fine)').matches;
 
 const dot = document.getElementById('curDot');
 const ring = document.getElementById('curRing');
 
 if (!isPointerFine) {
-  // Hide cursor elements entirely on touch devices
   if (dot) dot.style.display = 'none';
   if (ring) ring.style.display = 'none';
   document.body.style.cursor = 'auto';
 } else {
-  // ── POKÉBALL CURSOR ──
   let mx = 0, my = 0, rx = 0, ry = 0;
   document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
   (function anim() {
@@ -25,8 +21,6 @@ if (!isPointerFine) {
     el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
   });
 }
-
-// ── SCROLL BAR ──
 const bar = document.getElementById('scrollBar');
 window.addEventListener('scroll', () => {
   if (!bar) return;
@@ -34,14 +28,10 @@ window.addEventListener('scroll', () => {
   const pct = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0;
   bar.style.width = pct + '%';
 });
-
-// ── REVEAL ON SCROLL ──
 const obs = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
 }, { threshold: 0.1 });
 document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
-
-// ── PARALLAX BLOBS (respects reduced-motion) ──
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 if (!prefersReducedMotion) {
   window.addEventListener('scroll', () => {
@@ -51,8 +41,6 @@ if (!prefersReducedMotion) {
     });
   });
 }
-
-// ── DARK MODE TOGGLE ──
 const themeToggle = document.getElementById('themeToggle');
 const themeIcon = themeToggle ? themeToggle.querySelector('.theme-icon') : null;
 const savedTheme = localStorage.getItem('theme') || 'light';
@@ -69,7 +57,6 @@ if (themeToggle) {
   });
 }
 
-// ── HAMBURGER MENU ──
 const hamburger = document.getElementById('hamburger');
 const mobileMenu = document.getElementById('mobileMenu');
 const mobileMenuClose = document.getElementById('mobileMenuClose');
@@ -93,13 +80,9 @@ function closeMenu() {
 if (hamburger) hamburger.addEventListener('click', openMenu);
 if (mobileMenuClose) mobileMenuClose.addEventListener('click', closeMenu);
 mobileNavLinks.forEach(link => link.addEventListener('click', closeMenu));
-
-// Close on Escape key
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeMenu();
 });
-
-// ── TYPEWRITER EFFECT ──
 const typewriterEl = document.getElementById('typewriter');
 const phrases = [
   'Digital Things',
@@ -143,31 +126,25 @@ function typeWriter() {
   }
 }
 
-// Start typewriter after hero animation settles (skip animation for reduced-motion users)
 if (prefersReducedMotion) {
   if (typewriterEl) typewriterEl.textContent = phrases[0];
 } else {
   setTimeout(typeWriter, 1200);
 }
 
-// ── VIEW COUNTER (Supabase-based or local fallback) ──
-// NOTE: Replace SUPABASE_URL and SUPABASE_ANON_KEY with your own project keys.
-// Free tier at supabase.com — create a table `page_views` with columns: id (int8, PK), page (text), count (int8)
-// Then insert a row: { id: 1, page: 'home', count: 0 }
 const viewCountEl = document.getElementById('viewCount');
 const viewCountStatusEl = document.getElementById('viewCountStatus');
 
-const SUPABASE_URL = ''; // e.g. 'https://xyzxyz.supabase.co'
-const SUPABASE_ANON_KEY = ''; // your anon/public key
+const SUPABASE_URL = ''; 
+const SUPABASE_ANON_KEY = ''; 
 const PAGE_KEY = 'home';
 
 async function updateLiveViewCount() {
   if (!viewCountEl) return;
 
-  // If Supabase is configured, use it
   if (SUPABASE_URL && SUPABASE_ANON_KEY) {
     try {
-      // Increment
+
       const incRes = await fetch(
         `${SUPABASE_URL}/rest/v1/rpc/increment_view_count`,
         {
@@ -192,7 +169,6 @@ async function updateLiveViewCount() {
     }
   }
 
-  // Local fallback (works offline / without backend)
   const localKey = 'portfolioLocalViews';
   const localCount = Number(localStorage.getItem(localKey) || '0') + 1;
   localStorage.setItem(localKey, String(localCount));
@@ -202,7 +178,6 @@ async function updateLiveViewCount() {
 
 updateLiveViewCount();
 
-// ── CONTACT FORM with mailto fallback ──
 const contactForm = document.getElementById('contactForm');
 const formStatus = document.getElementById('formStatus');
 const formSubmitButton = contactForm ? contactForm.querySelector('.form-submit') : null;
@@ -236,8 +211,6 @@ if (contactForm && formStatus) {
     }
 
     let sent = false;
-
-    // Primary: formsubmit.co
     try {
       const response = await fetch(`https://formsubmit.co/ajax/${recipientEmail}`, {
         method: 'POST',
@@ -260,8 +233,7 @@ if (contactForm && formStatus) {
     } catch (error) {
       console.warn('formsubmit.co failed, trying mailto fallback:', error);
     }
-
-    // Fallback: mailto link
+    
     if (!sent) {
       const subject = encodeURIComponent(`Portfolio message from ${name}`);
       const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`);
@@ -279,7 +251,6 @@ if (contactForm && formStatus) {
   });
 }
 
-// ── BACK TO TOP ──
 const backToTopBtn = document.getElementById('backToTop');
 if (backToTopBtn) {
   window.addEventListener('scroll', () => {
