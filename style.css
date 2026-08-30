@@ -490,7 +490,7 @@ nav {
 
 .proj-card {
   background: var(--card-bg); border: 2px solid var(--ink);
-  border-radius: 20px; padding: 2rem;
+  border-radius: 20px; padding: 2.65rem 2rem 2rem;
   cursor: none; position: relative; overflow: hidden;
   transition: transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s, var(--transition-theme);
   box-shadow: 4px 4px 0 var(--ink);
@@ -498,16 +498,37 @@ nav {
 }
 .proj-card:hover { transform: translate(-4px,-6px); box-shadow: 8px 10px 0 var(--ink); }
 
-/* Type color top accent */
+/* Pokémon type accent — use symbols instead of leaking the raw type names. */
 .proj-card::before {
-  content: attr(data-type);
+  content: '';
   position: absolute; top: 0; left: 0; right: 0;
   height: 5px; border-radius: 20px 20px 0 0;
+}
+.proj-card::after {
+  content: attr(data-type-icon);
+  position: absolute;
+  top: 9px;
+  left: 14px;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 0.82rem;
+  line-height: 1;
+  border: 1.5px solid rgba(26,26,46,0.14);
+  box-shadow: 1px 1px 0 rgba(26,26,46,0.14);
+  z-index: 1;
 }
 .proj-card[data-type="fire"]::before   { background: linear-gradient(90deg, var(--red), #ff8c00); }
 .proj-card[data-type="water"]::before  { background: linear-gradient(90deg, var(--blue), #06b6d4); }
 .proj-card[data-type="grass"]::before  { background: linear-gradient(90deg, var(--green), #84cc16); }
 .proj-card[data-type="electric"]::before { background: linear-gradient(90deg, var(--yellow), #f97316); }
+.proj-card[data-type="fire"]::after { background: #ffe5e7; }
+.proj-card[data-type="water"]::after { background: #e7f2ff; }
+.proj-card[data-type="grass"]::after { background: #e9f8ec; }
+.proj-card[data-type="electric"]::after { background: #fff4bf; }
+[data-theme="dark"] .proj-card::after { border-color: rgba(255,255,255,0.18); box-shadow: none; }
 
 .proj-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
 .proj-icon { width: 52px; height: 52px; border-radius: 14px; border: 2px solid var(--ink); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: 2px 2px 0 var(--ink); }
@@ -990,13 +1011,13 @@ footer a { color: var(--red); text-decoration: none; }
   color: var(--ink); line-height: 1.8; display: block;
 }
 .building-sublabel { font-size: 0.75rem; font-weight: 600; color: var(--muted); }
-.building-list { display: flex; flex-direction: column; gap: 1.1rem; margin-bottom: 1.2rem; }
+.building-list { display: flex; flex-direction: column; gap: 0.95rem; margin-bottom: 1.2rem; }
 .building-item { }
 .building-item-top {
-  display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.5rem;
+  display: flex; align-items: flex-start; gap: 0.6rem; margin-bottom: 0.5rem;
 }
 .building-emoji { font-size: 1rem; flex-shrink: 0; }
-.building-item-text { flex: 1; }
+.building-item-text { flex: 1; min-width: 0; }
 .building-item-text strong { display: block; font-size: 0.85rem; font-weight: 800; color: var(--ink); line-height: 1.2; }
 .building-item-text span { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
 .building-status {
@@ -1004,6 +1025,7 @@ footer a { color: var(--red); text-decoration: none; }
   padding: 0.2rem 0.5rem; border-radius: 6px; flex-shrink: 0;
 }
 .building-status.wip { background: rgba(37,99,235,0.1); color: var(--blue); border: 1px solid rgba(37,99,235,0.2); }
+.building-status.active { background: var(--green-bg); color: var(--green); border: 1px solid rgba(22,163,74,0.25); }
 .building-status.early { background: rgba(255,204,0,0.15); color: #a07000; border: 1px solid rgba(255,204,0,0.3); }
 [data-theme="dark"] .building-status.early { color: var(--yellow2); }
 .building-bar {
@@ -1142,6 +1164,11 @@ a.ach-card { text-decoration: none; cursor: none; }
   background: var(--green-bg); color: var(--green); border: 1px solid rgba(22,163,74,0.25);
   padding: 0.2rem 0.55rem; border-radius: 100px;
 }
+.exp-date {
+  font-family: var(--pixel); font-size: 0.3rem; letter-spacing: 0.05em; line-height: 1.8;
+  background: var(--bg2); color: var(--muted); border: 1px solid var(--border);
+  padding: 0.2rem 0.55rem; border-radius: 100px;
+}
 .exp-org { font-size: 0.85rem; font-weight: 700; color: var(--ink2); margin-bottom: 0.25rem; }
 .exp-meta { font-size: 0.78rem; font-weight: 600; color: var(--muted); }
 
@@ -1183,3 +1210,28 @@ a.ach-card { text-decoration: none; cursor: none; }
     animation: none !important;
   }
 }
+
+@media (max-width: 520px) {
+  .building-item-top { flex-wrap: wrap; }
+  .building-item-text { min-width: calc(100% - 2rem); }
+  .building-status { margin-left: 1.6rem; }
+}
+
+/* ── CURSOR FAIL-SAFE ──
+   Keep the native cursor available unless the custom Pokéball cursor
+   has successfully initialized. Also hide the Pokéball until the first
+   real mouse movement so it never sits in the top-left corner. */
+.cur-dot, .cur-ring { opacity: 0; }
+.custom-cursor.cursor-active .cur-dot,
+.custom-cursor.cursor-active .cur-ring { opacity: 1; }
+
+html:not(.custom-cursor) body { cursor: auto; }
+html:not(.custom-cursor) a,
+html:not(.custom-cursor) button,
+html:not(.custom-cursor) .proj-card,
+html:not(.custom-cursor) .sk,
+html:not(.custom-cursor) .astat,
+html:not(.custom-cursor) .form-submit,
+html:not(.custom-cursor) .back-to-top,
+html:not(.custom-cursor) a.ach-card { cursor: pointer; }
+html:not(.custom-cursor) .proj-wip { cursor: default; }
